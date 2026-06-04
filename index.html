@@ -600,8 +600,23 @@ function openEU(id){const u=S.users.find(x=>x.id===id);if(!u)return;const is=id=
 async function saveEU(id){const u=S.users.find(x=>x.id===id);if(!u)return;const data={name:document.getElementById('eun').value.trim()||u.name,email:document.getElementById('eue').value,role:document.getElementById('eur').value,avatar:ini(document.getElementById('eun').value.trim()||u.name)};await dBU(data,id);Object.assign(u,data);closeM();render();}
 async function reactivateU(id){await dBU({active:true},id);const u=S.users.find(x=>x.id===id);if(u)u.active=true;render();}
 async function hardDelU(id){if(!confirm('Delete this user permanently?'))return;await dBdU(id);S.users=S.users.filter(u=>u.id!==id);closeM();render();}
+const ADMIN_PIN='8675309';
 function switchTo(id){S.uid=id;S.fo='';S.sc=null;closePanel();show('companies');}
-function openSW(){const list=au().map(u=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--r);cursor:pointer;${u.id===S.uid?'background:var(--bg2)':''}" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='${u.id===S.uid?'var(--bg2)':''}'" onclick="switchTo('${u.id}');closeM()"><div class="av av-${u.color||'gray'}">${u.avatar||ini(u.name)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${u.name}</div><div style="font-size:11px;color:var(--tx2)">${u.role==='admin'?'Admin / Manager':'Sales Rep'}</div></div>${u.id===S.uid?'<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>':''}</div>`).join('');showM(`<h3>Switch user</h3><div style="margin:-.5rem 0 .5rem">${list}</div><div class="ma"><button class="btn" onclick="closeM()">Close</button></div>`);}
+function trySwitch(id){
+  const u=S.users.find(x=>x.id===id);if(!u)return;
+  if(u.role==='admin'&&id!==S.uid){
+    showM('<h3>Admin access required</h3><p style="font-size:13px;color:var(--tx2);margin-bottom:1.25rem">Enter the admin PIN to switch to <strong>'+u.name+'</strong>.</p><div class="fr"><label>PIN</label><input id="apin" type="password" placeholder="••••••••" autocomplete="off" style="letter-spacing:4px;font-size:16px" onkeydown="if(event.key===\'Enter\')cfmPin(\''+id+'\')"></div><div id="perr" style="display:none;color:#791F1F;font-size:12px;margin-top:-8px;margin-bottom:.75rem">Incorrect PIN. Try again.</div><div class="ma"><button class="btn" onclick="closeM()">Cancel</button><button class="btn P" onclick="cfmPin(\''+id+'\')">Unlock</button></div>');
+    setTimeout(()=>document.getElementById('apin')?.focus(),100);
+  } else {
+    switchTo(id);closeM();
+  }
+}
+function cfmPin(id){
+  const val=document.getElementById('apin')?.value;
+  if(val===ADMIN_PIN){closeM();switchTo(id);}
+  else{const e=document.getElementById('perr');if(e){e.style.display='block';document.getElementById('apin').value='';document.getElementById('apin').focus();}}
+}
+function openSW(){const list=au().map(u=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--r);cursor:pointer;${u.id===S.uid?'background:var(--bg2)':''}" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='${u.id===S.uid?'var(--bg2)':''}'" onclick="trySwitch('${u.id}')"><div class="av av-${u.color||'gray'}">${u.avatar||ini(u.name)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${u.name}</div><div style="font-size:11px;color:var(--tx2)">${u.role==='admin'?'🔒 Admin':'Sales Rep'}</div></div>${u.id===S.uid?'<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>':''}</div>`).join('');showM(`<h3>Switch user</h3><div style="margin:-.5rem 0 .5rem">${list}</div><div class="ma"><button class="btn" onclick="closeM()">Close</button></div>`);}
 
 function openQ360(){S.esf='all';renderQ360(false);document.getElementById('mb').classList.add('open');}
 function renderQ360(ex){
