@@ -328,7 +328,7 @@ const sa=c=>{const{c:cc,d}=S.ps;if(cc!==c)return'<span class="sx">↕</span>';re
 
 async function loadAll(){
   try{
-    const[users,companies,contacts,opps,oN2,oT,cN]=await Promise.all([GET('users','order=name'),GET('companies','order=name'),GET('contacts','order=name'),GET('opportunities','order=created_at'),GET('opportunity_notes','order=created_at.desc'),GET('opportunity_tasks','order=created_at'),GET('company_notes','order=created_at.desc')]);
+    const[users,companies,contacts,opps,oN2,oT,cN]=await Promise.all([GET('users','order=name'),GET('companies','order=name'),GET('contacts','order=name'),GET('opportunities','order=created_at'),GET('opportunity_notes','select=*&order=created_at.desc'),GET('opportunity_tasks','order=created_at'),GET('company_notes','order=created_at.desc')]);
     S.users=users;
     S.companies=companies.map(c=>({...c,contacts:contacts.filter(ct=>ct.company_id===c.id),opportunities:opps.filter(o=>o.company_id===c.id).map(o=>({...o,notes:oN2.filter(n=>n.opportunity_id===o.id),tasks:oT.filter(t=>t.opportunity_id===o.id)})),notes:cN.filter(n=>n.company_id===c.id).map(n=>n.text)}));
     if(!S.uid&&S.users.length>0)S.uid=S.users[0].id;
@@ -514,6 +514,7 @@ function openOP(cid,oid){
       <div style="background:var(--bg2);border-radius:var(--r);padding:1rem"><div style="font-size:12px;color:var(--tx2);margin-bottom:7px">Stage</div><span class="pill ${o.stage}">${sl(o.stage)}</span></div>
       <div style="background:var(--bg2);border-radius:var(--r);padding:1rem"><div style="font-size:12px;color:var(--tx2);margin-bottom:5px">Probability</div><div style="font-size:17px;font-weight:600">${o.probability}%</div></div>
       <div style="background:${st==='overdue'?'#FAEEDA':'var(--bg2)'};border-radius:var(--r);padding:1rem;${st==='overdue'?'border:0.5px solid #FAC775':''}"><div style="font-size:12px;color:${st==='overdue'?'#633806':'var(--tx2)'};margin-bottom:5px">Close date</div><div style="font-size:15px;font-weight:600;color:${st==='overdue'?'#791F1F':'var(--tx)'}">${o.close_date?fd(o.close_date):'—'}</div></div>
+      <div style="background:var(--bg2);border-radius:var(--r);padding:1rem"><div style="font-size:12px;color:var(--tx2);margin-bottom:5px">Created</div><div style="font-size:13px;font-weight:500;color:var(--tx)">${o.created_at?new Date(o.created_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—'}</div></div>
     </div>
     ${q360H(cid,oid,o,ce)}
     ${isCl&&ce?`<div style="background:var(--bg2);border:0.5px solid var(--bd2);border-radius:var(--r);padding:1rem;margin-bottom:.75rem"><div class="st2" style="margin-bottom:.625rem">${o.stage==='won'?'🏆 Won':'❌ Lost'} Reason</div>${o.close_reason?`<span class="rb ${o.stage==='won'?'wr':'lr'}">${o.close_reason}</span>`:'<span style="font-size:13px;color:var(--tx2)">No reason recorded</span>'}<button class="btn s" style="display:block;margin-top:.75rem" onclick="prOtc('${cid}','${oid}','${o.stage}',true)">Edit reason</button></div>`:''}
